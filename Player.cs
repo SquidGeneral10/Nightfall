@@ -18,11 +18,37 @@ namespace Nightfall
         private Animation slideAnimation;
         private SpriteEffects flip = SpriteEffects.None;
         private AnimationPlayer sprite;
+        private Texture2D emptyMomentum; // Code for the empty momentum bar sprite to use.
+        private Texture2D fullMomentum; // Code for the full momentum bar sprite to use.
 
         private SoundEffect killedSound;
         private SoundEffect jumpSound;
         private SoundEffect fallSound;
         #endregion
+
+        #region Powering up state
+        private const float MaxPowerUpTime = 5.0f;
+        private float powerUpTime;
+        public bool IsPoweredUp // determines whether or not the player is powered up based on whether or not the powered up time is above 0.
+        {
+            get { return powerUpTime > 0.0f; }
+        }
+        private readonly Color[] poweredUpColors = // The colours that the player sprite cycles through when powered up.
+        {
+            Color.Blue,
+            Color.DeepSkyBlue,
+            Color.SteelBlue,
+            Color.Red,
+        };
+        private SoundEffect powerUpSound;
+        #endregion
+
+        public bool IsSpeedy // determines whether or not the player has maxed out their momentum bar.
+        {
+            get { return isSpeedy; }
+        }
+
+        public bool isSpeedy;
 
         public Level Level
         {
@@ -57,8 +83,8 @@ namespace Nightfall
         Vector2 velocity;
 
         // Controls horizontal movement.
-        private const float MoveAcceleration = 13000.0f;
-        private const float MaxMoveSpeed = 1750.0f;
+        public const float MoveAcceleration = 13000.0f;
+        public const float MaxMoveSpeed = 1750.0f;
         private const float GroundDragFactor = 0.48f;
         private const float AirDragFactor = 0.58f;
 
@@ -135,6 +161,7 @@ namespace Nightfall
             jumpAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/PlayerSprites/JumpSpritesheet"), 0.1f, false);
             dieAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/PlayerSprites/DieSpritesheet"), 0.1f, false);
             slideAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/PlayerSprites/SlideSpritesheet"), 0.1f, false);
+            
 
             // Changes the player hitbox size based on the size of the current animation frame.            
             int width = (int)(idleAnimation.FrameWidth * 0.4);
@@ -150,10 +177,14 @@ namespace Nightfall
             int slidetop = slideAnimation.FrameHeight - slideheight;
             slideBounds = new Rectangle(slideleft, slidetop, slidewidth, slideheight);
 
-            #region Loads sounds           
+            #region Loads sounds and sprites      
             killedSound = Level.Content.Load<SoundEffect>("Sounds/Sound - PlayerCaught");
             jumpSound = Level.Content.Load<SoundEffect>("Sounds/Sound - PlayerJump");
             fallSound = Level.Content.Load<SoundEffect>("Sounds/Sound - PlayerFallDie");
+            powerUpSound = Level.Content.Load<SoundEffect>("Sounds/Sound - PowerUp");
+
+            fullMomentum = Level.Content.Load<Texture2D>("Sprites/MomentumBar2");
+            emptyMomentum = Level.Content.Load<Texture2D>("Sprites/MomentumBar");
             #endregion
         }
 
@@ -162,6 +193,7 @@ namespace Nightfall
             Position = position; // The place where the player respawns.
             Velocity = Vector2.Zero;
             isAlive = true;
+            powerUpTime = 0; // Makes sure the player does not spawn with the ability to kill guards.
             sprite.PlayAnimation(idleAnimation);
         }
 
@@ -170,6 +202,11 @@ namespace Nightfall
             GetInput(keyboardState, accelState);
 
             ApplyPhysics(gameTime);
+
+            if (IsPoweredUp) // checks to see if the player is powered up and reduces the powered up timer if they are.
+            {
+                powerUpTime = Math.Max(0.0f, powerUpTime - (float)gameTime.ElapsedGameTime.TotalSeconds);
+            }
 
             if (IsAlive && IsOnGround) // Plays the run / idle animations if the player is alive and on the ground depending on if they're moving or not.
             {
@@ -232,6 +269,11 @@ namespace Nightfall
                 movement = 1.0f;
             }
             #endregion
+
+            if (movement == 1.0f)
+            {
+                isSpeedy = true;
+            }
 
             isJumping = // Lets the player jump by pressing the up arrow key, W or Spacebar.
                 keyboardState.IsKeyDown(Keys.Space) ||
@@ -383,7 +425,34 @@ namespace Nightfall
             else if (Velocity.X < 0)
                 flip = SpriteEffects.None;
 
-            sprite.Draw(gameTime, spriteBatch, Position, flip); // Draws the animation sprite.
+            Color color;
+
+            if (IsPoweredUp) // Determines whether or not the player should flash different colours by checking if they are powered up.
+            {
+                float t = ((float)gameTime.TotalGameTime.TotalSeconds + powerUpTime / MaxPowerUpTime) * 20.0f;
+                int colorIndex = (int)t % poweredUpColors.Length;
+                color = poweredUpColors[colorIndex];
+            }
+            else
+            {
+                color = Color.White;
+            }
+
+            if (isSpeedy == true)
+            {
+                spriteBatch.Draw(fullMomentum, new Vector2(850, 20), Color.White); // Adds the full momentum bar sprite to the screen when the player's fast enough.
+            }
+            else if (movement == 0.0f)
+            {
+                spriteBatch.Draw(emptyMomentum, new Vector2(850, 20), Color.White); // Adds the empty momentum bar sprite to the screen when the player's stopped moving.
+            }
+
+            sprite.Draw(gameTime, spriteBatch, Position, flip, color); // Draws the animation sprite.        
+        }
+        public void PowerUp()
+        {
+            powerUpTime = MaxPowerUpTime;
+            powerUpSound.Play();
         }
     }
 }
