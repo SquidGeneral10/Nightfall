@@ -43,12 +43,27 @@ namespace Nightfall
         private SoundEffect powerUpSound;
         #endregion
 
-        public bool IsSpeedy // determines whether or not the player has maxed out their momentum bar.
+        #region Momentum booleans
+
+        public int movementTimer;
+
+        public bool IsSpeedy // determines whether or not the player has reached the momentum limit.
         {
             get { return isSpeedy; }
         }
 
         public bool isSpeedy;
+        #endregion
+
+        #region Sliding booleans
+        // Creates a bool to  define if the player is sliding or not.
+        private bool isSliding;
+        public bool IsSliding
+        {
+            get { return isSliding; } // Checks whether or not the player is sliding.
+        }
+        #endregion
+
 
         public Level Level
         {
@@ -97,14 +112,6 @@ namespace Nightfall
 
         // Controls input
         private const float AccelerometerScale = 1.5f;
-
-        // Creates a bool to  define if the player is sliding or not.
-        private bool isSliding;
-
-        public bool IsSliding
-        {
-            get { return isSliding; } // Checks whether or not the player is sliding.
-        }
 
         public bool IsOnGround
         {
@@ -199,7 +206,7 @@ namespace Nightfall
 
         public void Update(GameTime gameTime, KeyboardState keyboardState, AccelerometerState accelState) // Updates input, movement, physics and animations.
         {
-            GetInput(keyboardState, accelState);
+            GetInput(keyboardState, accelState, gameTime);
 
             ApplyPhysics(gameTime);
 
@@ -234,9 +241,7 @@ namespace Nightfall
             isSliding = false; // Stops the player from sliding when they aren't pressing anything.
         }
 
-        private void GetInput(
-            KeyboardState keyboardState,
-            AccelerometerState accelState)
+        private void GetInput(KeyboardState keyboardState, AccelerometerState accelState, GameTime gameTime)
         {
             if (Math.Abs(movement) < 0.5f) // Ignores tiny taps of the keys so the player doesn't run in place.
                 movement = 0.0f;
@@ -247,32 +252,61 @@ namespace Nightfall
             }
 
             #region Left and right movement.
+            if (keyboardState.IsKeyDown(Keys.A)) // Moves the player left when they press the A key.
+            {
+                movement = -1.0f;
+                movementTimer++;
+
+                if (movementTimer >= 150.0f)
+                {
+                    isSpeedy = true;
+                    movement = -1.5f;
+                }
+
+            }
+
             if (keyboardState.IsKeyDown(Keys.Left)) // Moves the player left when they press the left arrow key.
             {
                 movement = -1.0f;
+                movementTimer++;
+
+                if (movementTimer >= 150.0f)
+                {
+                    isSpeedy = true;
+                    movement = -1.5f;
+                }
+
             }
 
-            if (keyboardState.IsKeyDown(Keys.A)) // Moves the player lefft when they press the A key.
-            {
-                movement = -1.0f;
-            }
-
-            if (keyboardState.IsKeyDown(Keys.Right)) // Moves the player right when they press the right arrow key.
-
+            if (keyboardState.IsKeyDown(Keys.Right)) // Moves the player right when they press the D key.
             {
                 movement = 1.0f;
+                movementTimer++;
+
+                if (movementTimer >= 150.0f)
+                {
+                    isSpeedy = true;
+                    movement = 1.5f;
+                }
             }
 
             if (keyboardState.IsKeyDown(Keys.D)) // Moves the player right when they press the D key.
-
             {
                 movement = 1.0f;
+                movementTimer++;
+
+                if (movementTimer >= 150.0f)
+                {
+                    isSpeedy = true;
+                    movement = 1.5f;                   
+                }
             }
             #endregion
 
-            if (movement == 1.0f)
+            if (movement == 0.0f) // Stops the full momentum bar from showing when the player has stopped moving.
             {
-                isSpeedy = true;
+                isSpeedy = false;
+                movementTimer = 0;
             }
 
             isJumping = // Lets the player jump by pressing the up arrow key, W or Spacebar.
@@ -283,7 +317,9 @@ namespace Nightfall
             isSliding = // Lets the player slide by pressing the S or Down arrow keys.
                 keyboardState.IsKeyDown(Keys.S) ||
                 keyboardState.IsKeyDown(Keys.Down);
+
         }
+
 
         #region Controls the player's movement physics - max speed, velocity, etc.
         public void ApplyPhysics(GameTime gameTime)
@@ -403,27 +439,31 @@ namespace Nightfall
 
         public void OnKilled(Enemy killedBy)
         {
-            isAlive = false;
 
             if (killedBy != null)
                 killedSound.Play(); // Plays the killed sound if the player dies via enemy.
             else
                 fallSound.Play(); // Plays the fall sound if the player dies via falling.
 
-            sprite.PlayAnimation(dieAnimation); // Plays the death animation regardless of cause of death.
+            sprite.PlayAnimation(dieAnimation); // Plays the death animation.
+
+            isAlive = false;
+
+            movementTimer = 0; // Resets the player's momentum when a they die.
         }
 
         public void OnReachedExit()
         {
             sprite.PlayAnimation(idleAnimation); // Plays the idle animation when the exit is touched so the player isn't stuck in any animations when they reach the exit.
+            movementTimer = 0; // Resets the player's momentum when a level is cleared.
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch) // Shows the animations in the game.
         {
             if (Velocity.X > 0)
-                flip = SpriteEffects.FlipHorizontally; // Makes the animation play the right way around.
+                flip = SpriteEffects.FlipHorizontally; // Mirrors the player's spritesheet if they're moving to the right, so the sprites are facing right.
             else if (Velocity.X < 0)
-                flip = SpriteEffects.None;
+                flip = SpriteEffects.None; // Does not mirror the player's spritesheet if they're moving to the left.
 
             Color color;
 
@@ -442,7 +482,7 @@ namespace Nightfall
             {
                 spriteBatch.Draw(fullMomentum, new Vector2(850, 20), Color.White); // Adds the full momentum bar sprite to the screen when the player's fast enough.
             }
-            else if (movement == 0.0f)
+            if (isSpeedy == false)
             {
                 spriteBatch.Draw(emptyMomentum, new Vector2(850, 20), Color.White); // Adds the empty momentum bar sprite to the screen when the player's stopped moving.
             }
