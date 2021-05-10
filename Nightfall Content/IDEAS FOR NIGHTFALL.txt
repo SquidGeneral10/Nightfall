@@ -1,0 +1,14 @@
+use the monogame guy's guide you already have
+
+use his 'powerup' tutorial that kills enemies
+to have a 'slide' pickup
+that plays the slide animation
+and.. kills enemies
+
+maybe it'll be janky, maybe it won't
+
+also use the portal tutorial that Sam put up a while back
+to transfer between gamestates
+or something.
+
+i hope finley understands my code lmao
