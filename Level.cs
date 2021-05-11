@@ -51,6 +51,7 @@ namespace Nightfall
         {
             get { return timeRemaining; }
         }
+
         TimeSpan timeRemaining;
 
         private const int PointsPerSecond = 5; // Will later be used to give the player extra points for every second left on the clock when they finish level.
@@ -59,6 +60,7 @@ namespace Nightfall
         {
             get { return content; }
         }
+
         ContentManager content;
 
         private SoundEffect exitReachedSound;
@@ -94,7 +96,7 @@ namespace Nightfall
                 {
                     lines.Add(line);
                     if (line.Length != width)
-                        throw new Exception(String.Format("The length of line {0} is different from all preceeding lines.", lines.Count));
+                        throw new Exception(string.Format("The length of line {0} is different from all preceeding lines.", lines.Count));
                     line = reader.ReadLine();
                 }
             }
@@ -188,7 +190,7 @@ namespace Nightfall
             if (exit != InvalidPosition)
                 throw new NotSupportedException("A level may only have one exit."); // Throws an error message when a level tries to have more than one exit or put the exit in a floating tile.
 
-            exit = GetBounds(x, y).Center;// Finds the center of the exit tile so the player can collide with it.
+            exit = GetDoorBounds(x, y).Center;// Finds the center of the exit tile so the player can collide with it.
 
             return LoadTile("Exit", TileCollision.Passable); // Lets the player collide with the exit by making it passable and able to overlap the player.
         }
@@ -228,6 +230,11 @@ namespace Nightfall
         public Rectangle GetBounds(int x, int y) // Gives all tiles a collision box.
         {
             return new Rectangle(x * Tile.Width, y * Tile.Height, Tile.Width, Tile.Height);
+        }
+
+        public Rectangle GetDoorBounds(int x, int y) // Gives all doors a larger collision box.
+        {
+            return new Rectangle(x * Tile.Width, y * Tile.Height, Tile.DoorWidth, Tile.DoorHeight);
         }
 
         public int Width
