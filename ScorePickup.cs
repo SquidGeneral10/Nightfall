@@ -10,8 +10,10 @@ namespace Nightfall
     class ScorePickup
     {
         private Texture2D texture;
+        private Texture2D knuckleTexture;
         private Vector2 origin;
         private SoundEffect collectedSound;
+        private SoundEffect powerupCollectedSound;
 
         public readonly int PointValue = 10;
         public bool IsPowerUp { get; private set; }
@@ -49,21 +51,25 @@ namespace Nightfall
             IsPowerUp = isPowerUp;
             if (IsPowerUp)
             {
-                PointValue = 100;
+                PointValue = 10;
             }
             else
             {
-                PointValue = 10;
+                PointValue = 100;
             }
 
             LoadContent();
         }
 
-        public void LoadContent() // Loads the pickup sprite and pickup noise.
+        public void LoadContent() // Loads the pickup sprites and pickup noise.
         {
             texture = Level.Content.Load<Texture2D>("Sprites/Pickup");
+            knuckleTexture = Level.Content.Load<Texture2D>("Sprites/Pickup2");
+
             origin = new Vector2(texture.Width / 2.0f, texture.Height / 2.0f);
-            collectedSound = Level.Content.Load<SoundEffect>("Sounds/Sound - PickupNoise");
+
+            collectedSound = Level.Content.Load<SoundEffect>("Sounds/Sound - ExitReached"); // Plays the exit reached noise when a regular pickup is grabbed since it sounds suitable.
+            powerupCollectedSound = Level.Content.Load<SoundEffect>("Sounds/Sound - PickupNoise"); // Plays the zappy pickup noise when a powerup is grabbed since it's suitable for taser knuckles.
         }
 
         public void Update(GameTime gameTime) // Makes the pickup move up and down so the game feels more 'alive' and encourages players to grab it.
@@ -78,15 +84,32 @@ namespace Nightfall
         }
         public void OnCollected(Player playerCollected)
         {
-            collectedSound.Play(); // Plays the 'pickupnoise' sound only when the player grabs the pickup.
+
+            if (IsPowerUp == false)
+            {
+                collectedSound.Play(); // Plays the 'pickupnoise' sound only when the player grabs the pickup.
+            }
 
             if (IsPowerUp)
-                playerCollected.PowerUp();
+            {
+                powerupCollectedSound.Play(); // Plays the other 'pickupnoise' sound only when the player grabs the power up pickup.
+                playerCollected.PowerUp(); // Begins the 'powered up' player state.
+            }
+
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)  // Draws the pickup with references to texture, position, color etc. 
         {
-            spriteBatch.Draw(texture, Position, null, Color.AntiqueWhite, 0.0f, origin, 1.0f, SpriteEffects.None, 0.0f);
+
+            if (IsPowerUp == false)
+            {
+                spriteBatch.Draw(texture, Position, null, Color.AntiqueWhite, 0.0f, origin, 1.0f, SpriteEffects.None, 0.0f);
+            }        
+            
+            if (IsPowerUp)
+            {
+                spriteBatch.Draw(knuckleTexture, Position, null, Color.AntiqueWhite, 0.0f, origin, 1.0f, SpriteEffects.None, 0.0f);
+            }
         }
     }
 }
