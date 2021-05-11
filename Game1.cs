@@ -33,9 +33,8 @@ namespace Nightfall
 
         private int levelIndex = -1; // Gets the level number
         private Level level; // Gets the level list
-        private Player player;
         private bool wasContinuePressed; // Controls the player's movement between levels
-        private const int numberOfLevels = 5; // Lets the system know how many levels are in the game so it knows when to loop and not look for extras.
+        private const int numberOfLevels = 7; // Lets the system know how many levels are in the game so it knows when to loop and not look for extras.
 
         private static readonly TimeSpan WarningTime = TimeSpan.FromSeconds(30); // When the time remaining is under 30 seconds, its text blinks red.
 
@@ -121,7 +120,7 @@ namespace Nightfall
             {
                 case GameState.MainMenu: // Loads the quit and start buttons when the gamestate is set to the main menu.
 
-                    IsMouseVisible = true; // Makes the mouse visible on the main menu so players can click the buttons.
+                    IsMouseVisible = true; // Makes the mouse visible on the main menu so the player can click the buttons.
 
                     foreach (var component in gameComponents)
                         component.Update(gameTime);
@@ -129,7 +128,7 @@ namespace Nightfall
                     break;
             }
 
-            HandleInput(gameTime); // constantly updates input so players can move when in a level.
+            HandleInput(gameTime); // constantly updates input so the player can move when in a level.
 
             level.Update(gameTime, keyboardState, accelerometerState); // Runs level updates, sending it information for gametime and inputs alongside accelerometer data.
 
