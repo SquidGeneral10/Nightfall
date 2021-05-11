@@ -56,7 +56,6 @@ namespace Nightfall
         private float waitTime; // Will be used to control how long the enemy waits before turning around.
 
         private const float MaxWaitTime = 1.6f; // Makes the enemy wait before immediately turning around.
-
         private const float MoveSpeed = 128.0f; // Enemy horizontal movement speed.
 
         public Enemy(Level level, Vector2 position, string spriteSet) // Sets up a new enemy constructor with level and position as things it needs to define.
