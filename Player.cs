@@ -55,9 +55,8 @@ namespace Nightfall
         public bool isSpeedy;
         #endregion
 
-        #region Sliding booleans
-        // Creates a bool to  define if the player is sliding or not.
-        private bool isSliding;
+        #region Sliding booleans      
+        private bool isSliding; // Creates a bool to  define if the player is sliding or not.
         public bool IsSliding
         {
             get { return isSliding; } // Checks whether or not the player is sliding.
@@ -252,53 +251,56 @@ namespace Nightfall
             }
 
             #region Left and right movement.
-            if (keyboardState.IsKeyDown(Keys.A)) // Moves the player left when they press the A key.
+            if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left)) // Moves the player left when they press the A or left arrow keys.
             {
-                movement = -1.0f;
                 movementTimer++;
 
-                if (movementTimer >= 150.0f)
+                if (keyboardState.IsKeyDown(Keys.S) || keyboardState.IsKeyDown(Keys.Down) && isSpeedy == false)
+                {
+                    movement = -1.25f; // Makes the player's slide slightly faster than their moving speed.
+                }
+                else
+                {
+                    movement = -1.0f;
+                }
+
+                if (movementTimer >= 200.0f)
                 {
                     isSpeedy = true;
                     movement = -1.5f;
+
+                    if (keyboardState.IsKeyDown(Keys.S) || keyboardState.IsKeyDown(Keys.Down))
+                    {
+                        movement = -1.9f;
+                    }
+
                 }
 
             }
 
-            if (keyboardState.IsKeyDown(Keys.Left)) // Moves the player left when they press the left arrow key.
+            if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right)) // Moves the player right when they press the D or right arrow key.
             {
-                movement = -1.0f;
                 movementTimer++;
 
-                if (movementTimer >= 150.0f)
+                if (keyboardState.IsKeyDown(Keys.S) || keyboardState.IsKeyDown(Keys.Down) && isSpeedy == false)
                 {
-                    isSpeedy = true;
-                    movement = -1.5f;
+                    movement = 1.25f; // Makes the player's slide slightly faster than their moving speed.
+                }
+                else
+                {
+                    movement = 1.0f;
                 }
 
-            }
-
-            if (keyboardState.IsKeyDown(Keys.Right)) // Moves the player right when they press the D key.
-            {
-                movement = 1.0f;
-                movementTimer++;
-
-                if (movementTimer >= 150.0f)
+                if (movementTimer >= 200.0f)
                 {
                     isSpeedy = true;
                     movement = 1.5f;
-                }
-            }
 
-            if (keyboardState.IsKeyDown(Keys.D)) // Moves the player right when they press the D key.
-            {
-                movement = 1.0f;
-                movementTimer++;
+                    if (keyboardState.IsKeyDown(Keys.S) || keyboardState.IsKeyDown(Keys.Down))
+                    {
+                        movement = 1.9f;
+                    }
 
-                if (movementTimer >= 150.0f)
-                {
-                    isSpeedy = true;
-                    movement = 1.5f;                   
                 }
             }
             #endregion
